@@ -1,58 +1,35 @@
 package com.example.myproyectandroid
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myproyectandroid.ui.theme.MyProyectAndroidTheme
 
-
-data class Stat(
-    val nombre: String,
-    val valor: Int,
-    val color: Color
-)
-
-val misStats = listOf(
-    Stat("HP", 45, Color.Green),
-    Stat("Ataque", 49, Color.Red),
-    Stat("Defensa", 49, Color.Blue),
-    Stat("Velocidad", 65, Color.Yellow)
-)
+import android.graphics.Bitmap
+import android.graphics.Color
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.set
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
+import androidx.core.graphics.createBitmap
 
 class MainActivity : ComponentActivity() {
 
@@ -65,15 +42,65 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(modifier = Modifier.padding(innerPadding)) {
                         //MiDibujoPersonalizado()
-                        PokemonScreen()
-
+                        //PokemonScreen()
+                        PantallaQR("Hola mundo")
                     }
                 }
             }
         }
     }
+
+
+}
+fun generarQR(datos: String, size: Int = 512): Bitmap? {
+    return try {
+        val writer = QRCodeWriter()
+        // Crea la matriz de puntos (BitMatrix)
+        val bitMatrix = writer.encode(datos, BarcodeFormat.QR_CODE, size, size)
+        val width = bitMatrix.width
+        val height = bitMatrix.height
+//        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+        val bitmap = createBitmap(width, height, Bitmap.Config.RGB_565)
+
+        // Recorremos la matriz para pintar píxel por píxel
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                // bitmap[x, y] = if (bitMatrix.get(x, y)) Color.BLACK else Color.WHITE
+                bitmap.setPixel(x, y, if (bitMatrix.get(x, y)) Color.BLACK else Color.WHITE)
+            }
+        }
+        bitmap
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }
 
+@Composable
+fun PantallaQR(textoParaQR: String) {
+    // Generamos el bitmap y lo recordamos
+    val qrBitmap = remember(textoParaQR) {
+        generarQR(textoParaQR)
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        if (qrBitmap != null) {
+            Image(
+                bitmap = qrBitmap.asImageBitmap(),
+                contentDescription = "Código QR de $textoParaQR",
+                modifier = Modifier.size(250.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Escanea para ver el contenido", style = MaterialTheme.typography.bodyMedium)
+        } else {
+            Text("Error al generar el QR")
+        }
+    }
+}
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
@@ -82,56 +109,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         modifier = modifier.padding(8.dp)
     )
 }
-
-@Composable
-fun MiDibujoPersonalizado() {
-    Canvas(
-        modifier = Modifier
-            .size(300.dp)
-            .padding(16.dp)
-    ) {
-        // 1. Dibujar el rostro (Círculo amarillo)
-        drawCircle(
-            color = Color.Yellow,
-            radius = size.minDimension / 2,
-            center = center // 'center' es una propiedad automática del Canvas
-        )
-
-        // 2. Dibujar el contorno del rostro
-        drawCircle(
-            color = Color.Black,
-            radius = size.minDimension / 2,
-            style = Stroke(width = 5f) // Solo el borde
-        )
-
-        // 3. Dibujar los ojos
-        val eyeRadius = 20f
-        drawCircle(
-            color = Color.Black,
-            radius = eyeRadius,
-            center = Offset(center.x - 60f, center.y - 50f)
-        )
-        drawCircle(
-            color = Color.Black,
-            radius = eyeRadius,
-            center = Offset(center.x + 60f, center.y - 50f)
-        )
-
-        // 4. Dibujar la sonrisa (un arco)
-        drawArc(
-            color = Color.Black,
-            startAngle = 0f,    // Empieza en la derecha (3 en un reloj)
-            sweepAngle = 180f,  // Gira 180 grados hacia abajo
-            useCenter = false,  // Si es true, cierra el arco hacia el centro (como un Pacman)
-            topLeft = Offset(center.x - 70f, center.y - 20f),
-            size = Size(140f, 100f),
-            style = Stroke(width = 10f, cap = StrokeCap.Round)
-        )
-    }
-}
-
-
-
 
 @Preview(showBackground = true)
 @Composable
