@@ -26,6 +26,9 @@
         <activity
             android:name=".MenuActivity"
             android:exported="false"> </activity>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="MIAPI" />
     </application>
 
 </manifest>

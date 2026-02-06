@@ -45,6 +45,12 @@ import androidx.lifecycle.viewModelScope
 //import androidx.room.RoomDatabase
 //import androidx.room.Update
 import com.example.myproyectandroid.ui.theme.MyProyectAndroidTheme
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -113,7 +119,8 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(modifier = Modifier.padding(innerPadding)) {
 //                        TaskScreen(viewModel)
-                        PantallaQR("Hola mundo")
+                        MyMap()
+//                        PantallaQR("Hola mundo")
                     }
                 }
             }
@@ -148,6 +155,33 @@ class MainActivity : ComponentActivity() {
 //        }
 //    }
 //}
+
+@Composable
+fun MyMap() {
+    // Definimos dónde queremos que mire la cámara (ej. Madrid)
+    val madrid = LatLng(40.4167, -3.7037)
+    val marker2 = LatLng(41.4167, -3.7037)
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(madrid, 10f)
+    }
+
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState
+    ) {
+        // Añadimos un marcador (un pin)
+        Marker(
+            state = MarkerState(position = madrid),
+            title = "Mi oficina",
+            snippet = "Aquí vivo"
+        )
+        Marker(
+            state = MarkerState(position = marker2),
+            title = "Mi carcelero",
+            snippet = "Aqui estoy secuestrado, ayuda!"
+        )
+    }
+}
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
